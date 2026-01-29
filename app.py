@@ -25,19 +25,25 @@ def extract():
         return data,200
     
 def pre_process(data):
-    for key,value in data["document"].items():
-        if isinstance(value,str):
-            changed=value.strip()
+    for key,value in data["schema"].items():
+        if value=="string":
+            changed=data["document"][key].strip()
             regexed=re.sub(r'\s+',' ',changed)
-            unwanted=['$','₹','€',',']
-            wanted=regexed
-            for i in unwanted:
-                if i in wanted:
-                    wanted=wanted.replace(i,'')
-            data["document"][key]=wanted
-            
-            if re.search([1-9],value):
-                data["document"][key]=float(value)
+            data["document"][key]=regexed
+        #Known limitations for number logic : no negatives, multiple dots invalid, float("")->crash
+        elif value=="number":
+            numbered=str(data["document"][key])#1
+            if(numbered=="" or numbered=="N/A"):
+                numbered=None 
+                data["document"][key]=numbered #2
+            else:
+                wanted="0123456789."
+                for i in numbered:
+                    if i not in wanted:
+                        numbered=numbered.replace(i,"")
+                numbered=float(numbered)
+                data["document"][key]=numbered #3
+        
     return data
 
 if __name__=="__main__":
