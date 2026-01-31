@@ -2,8 +2,8 @@ from flask import Flask, jsonify,request
 import re
 from dateutil import parser
 app=Flask(__name__)
-@app.route('/extract',methods=["POST"])
-def extract():
+@app.route('/preprocess',methods=["POST"])
+def validation():
     try:
         data=request.get_json()
         if data is None:
@@ -25,8 +25,7 @@ def extract():
     else:
         pre_processed=pre_process(data)
         return pre_processed,200
-    
-#@app.route('/preprocess',methods=["POST"])   
+ 
 def pre_process(data):
     for key,value in data["schema"].items():
         if value=="string":
@@ -82,6 +81,15 @@ def pre_process(data):
 
         
     return data
-
+@app.route('/extract',methods=["POST"])
+def extraction():
+    data=request.get_json()
+    ans={}
+    for i in data["required_fields"]:
+        if i in data["document"].keys():
+            ans[i]=data["document"].get(i)
+        else:
+            ans[i]=None
+    return ans
 if __name__=="__main__":
     app.run(debug=True)
